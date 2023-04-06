@@ -7,6 +7,8 @@ use App\Providers\RouteServiceProvider;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 //use Auth;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
+
 
 
 class LoginController extends Controller
@@ -22,7 +24,7 @@ class LoginController extends Controller
     |
     */
 
-    //use AuthenticatesUsers;
+    use AuthenticatesUsers;
 
     /**
      * Where to redirect users after login.
@@ -30,17 +32,39 @@ class LoginController extends Controller
      * @var string
      */
     protected function login(Request $request) {
-        if ($user->role == 1) {
-            return redirect('/superadmin');
-        } else if ($user->role== 2) {
-            return redirect('/admin');
-        } else if ($user->role== 3){
-            return redirect('/depthead');
-        } else if ($user->role== 4){
-            return redirect('/staff');
-        } else if ($user->role== 5){
-            return redirect('/client');
+        $credentials = $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
+
+        if(Auth::attempt($credentials)){
+            $user_role=Auth::user()->role;
+            switch($user_role){
+                case 1:
+                    return redirect('/superadmin');
+                    break;
+                case 2:
+                    return redirect('/admin');
+                    break;
+                case 3: 
+                    return redirect('/depthead');
+                    break;
+                case 4:
+                    return redirect('/staff');
+                    break;
+                case 5: 
+                    return redirect('/client');
+                    break;
+                default:
+                   Auth::logout();
+                   return redirect('/login')->with('error','oops something went wrong');
+
+            }
+
+        }else{
+            return redirect('login')->with('error','The credentials do not match our records');
         }
+    
    }
     
 
